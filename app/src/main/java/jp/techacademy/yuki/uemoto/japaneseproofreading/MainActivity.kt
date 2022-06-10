@@ -64,7 +64,6 @@ class MainActivity : AppCompatActivity() {
             }
             // 必要に応じてCallback
         })
-        //テスト
 
 
     }
