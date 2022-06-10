@@ -62,7 +62,6 @@ class MainActivity : AppCompatActivity() {
                 Log.e("Error", e.toString())
                 // 必要に応じてCallback
             }
-            // 必要に応じてCallback
         })
 
 
