@@ -29,5 +29,4 @@ data class Alerts(
     val score: Float,
     @SerializedName("suggestions")
     val suggestion: List<String>
-
 ):Serializable

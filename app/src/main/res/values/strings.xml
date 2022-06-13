@@ -3,13 +3,14 @@
 
 
     <string name="base_url">https://api.a3rt.recruit.co.jp/proofreading/v2/typo</string>
-    <string name="api_key"></string>
+    <string name="api_key">DZZkE8iyvs06Oq8Z2zstFG84eJDcqVnB</string>
 
     <!-- 校正前画面用文字列 -->
     <string name="before_tittle">文章校正機能アプリ</string>
 
     <!-- 校正後画面用文字列 -->
     <string name="after_tittle">校正結果</string>
+
 
 
     <!-- ヘルプ画面用文字列 -->
@@ -20,11 +21,7 @@
         疑わしい部分とは、誤字の可能性が高い部分や、\n
         誤字では無いが珍しい使い方、他により良い表現がありそうな部分等を指します。\n
         \n
-        ※構成結果について\n
-        \n
-        ・Scoreについて\n
-        指摘した単語の疑わしさを示す指標です。\n
-        0〜1の範囲の値をとり、1に近いほど疑わしい事を意味します。\n
+        ※校正結果について\n
         \n
         ・Suggestionsについて\n
         指摘箇所を置き換える候補です。\n
@@ -34,6 +31,10 @@
         絵文字は使用不可です。\n</string>
 
     <string name="help_tittle">ヘルプ</string>
+
+    <!-- 共有機能文字列 -->
+    <string name="share_tittle">共有方法を選択</string>
+    <string name="not_found_share">共有可能なアプリが存在しません</string>
 
 
 </resources>

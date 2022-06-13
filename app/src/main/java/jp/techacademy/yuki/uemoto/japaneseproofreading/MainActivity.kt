@@ -7,9 +7,12 @@ import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.View.INVISIBLE
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_result.*
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
@@ -17,15 +20,15 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
-    private val handler = Handler(Looper.getMainLooper())
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
         title = getString(R.string.before_tittle)
         button.setOnClickListener {
             startRequest()
         }
+
     }
 
     // OkHttpClientを作成
@@ -56,20 +59,18 @@ class MainActivity : AppCompatActivity() {
                      intent.putExtra("EXTRA_DATA", apiResponse)
                      startActivity(intent)
                  }
-
             }
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("Error", e.toString())
                 // 必要に応じてCallback
             }
         })
-
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+        menu.findItem(R.id.action_share).isVisible = false
         return true
     }
 
@@ -83,5 +84,7 @@ class MainActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
+
 }
 
