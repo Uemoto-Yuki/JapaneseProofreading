@@ -2,6 +2,7 @@ package jp.techacademy.yuki.uemoto.japaneseproofreading
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,7 +28,8 @@ class ResultActivity : AppCompatActivity() {
 
 
     private val handler = Handler(Looper.getMainLooper())
-    private var index= 0
+    private var index = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,28 +39,39 @@ class ResultActivity : AppCompatActivity() {
         val intent = intent
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
         var str = data1.checkedSentence
-
         var str1 = str.replace(" <<", "<font color=\"red\"><a href=\"dialog_page\">")
         str1 = str1.replace(">> ", "</font></a>")
+        val uriString = "dialog_page"
 
-        for (data in data1.alerts){
-            str = str.replace("dialog_page", "dialog_page?index=$data")
-            index ++
+        for (data in data1.alerts.indices){
+            var uri = Uri.parse(uriString)
+                .buildUpon()
+                .appendQueryParameter("index", index.toString())
+                .build()
+            index++
+            Log.d("テスト", uri.toString())
+
         }
-        Log.d("テスト", index.toString())
+
+
+
+        // dialog_page?index=0
+        // dialog_page?index=1
+        // dialog_page?index=2
 
         var csHtml = HtmlCompat.fromHtml(str1, FROM_HTML_MODE_COMPACT)
 
         resulttext.setLinkClickListenable(str1) { url ->
+
             // このurlがaタグのhrefに指定された文字列
             when (url) {
-                "dialog_page" -> {
+                "dialog_page"-> {
                     showDialog(); true
                 }
                 else -> false
             }
         }
-        resulttext.text = csHtml
+        resulttext.text = csHtml //textView
         ResultEditText.setText(csHtml)
 
         button2.setOnClickListener {
@@ -127,14 +140,12 @@ class ResultActivity : AppCompatActivity() {
 
 
     private fun showDialog() {
+        var uri = Uri.parse("dialog_page?index=$index")
+        Log.d("テスト2", uri.toString())
+        val indexnum = uri.getQueryParameter("index")!!.toInt()
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
-        val alert = data1.alerts[index-1]
+        val alert = data1.alerts[indexnum-1]
         val suggest = alert.suggestion.toString()
-        Log.d("テスト", index.toString())
-
-//        val alertsList = data1.alerts
-//        val suggest = alertsList[0].suggestion.toString()
-
         AlertDialog.Builder(this)
             .setTitle("訂正候補")
             .setMessage(suggest)
@@ -142,6 +153,11 @@ class ResultActivity : AppCompatActivity() {
                 // TODO:Yesが押された時の挙動
             }
             .show()
+
+//        val alertsList = data1.alerts
+//        val suggest = alertsList[0].suggestion.toString()
+
+
     }
 
 
