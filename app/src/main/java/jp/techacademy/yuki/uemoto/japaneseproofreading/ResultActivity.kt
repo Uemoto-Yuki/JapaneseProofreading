@@ -39,33 +39,29 @@ class ResultActivity : AppCompatActivity() {
         val intent = intent
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
         var str = data1.checkedSentence
-        var str1 = str.replace(" <<", "<font color=\"red\"><a href=\"dialog_page\">")
-        str1 = str1.replace(">> ", "</font></a>")
-        val uriString = "dialog_page"
 
-        for (data in data1.alerts.indices){
-            var uri = Uri.parse(uriString)
-                .buildUpon()
-                .appendQueryParameter("index", index.toString())
-                .build()
-            index++
-            Log.d("テスト", uri.toString())
+        Log.d("check1", str.split(' ').toString())
 
-        }
+        val str2 = str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
+            .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
+                val rawValue = it.replace("<<", "").replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
+                if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
+                    index++ //indexに1を足して
+                    "<font color=\"red\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                } else it //それ以外なら元に戻りまたチェック
+            }.joinToString(separator = "") //array型の文字列を全てくっつけて返す
+
+        Log.d("check2", str2)
 
 
+        var csHtml = HtmlCompat.fromHtml(str2, FROM_HTML_MODE_COMPACT)
 
-        // dialog_page?index=0
-        // dialog_page?index=1
-        // dialog_page?index=2
-
-        var csHtml = HtmlCompat.fromHtml(str1, FROM_HTML_MODE_COMPACT)
-
-        resulttext.setLinkClickListenable(str1) { url ->
+        resulttext.setLinkClickListenable(str2)
+        { url ->
 
             // このurlがaタグのhrefに指定された文字列
             when (url) {
-                "dialog_page"-> {
+                "dialog_page?index=${index - 1}" -> {
                     showDialog(); true
                 }
                 else -> false
@@ -76,7 +72,6 @@ class ResultActivity : AppCompatActivity() {
 
         button2.setOnClickListener {
             restartRequest()
-
         }
     }
 
@@ -140,11 +135,10 @@ class ResultActivity : AppCompatActivity() {
 
 
     private fun showDialog() {
-        var uri = Uri.parse("dialog_page?index=$index")
-        Log.d("テスト2", uri.toString())
+        var uri = Uri.parse("dialog_page")
         val indexnum = uri.getQueryParameter("index")!!.toInt()
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
-        val alert = data1.alerts[indexnum-1]
+        val alert = data1.alerts[indexnum]
         val suggest = alert.suggestion.toString()
         AlertDialog.Builder(this)
             .setTitle("訂正候補")
@@ -177,7 +171,7 @@ class ResultActivity : AppCompatActivity() {
         } else if (id == R.id.action_share) {
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
-                val string=  resulttext.text.toString()
+                val string = resulttext.text.toString()
                 putExtra(Intent.EXTRA_TEXT, string)
                 type = "text/plain"
             }
