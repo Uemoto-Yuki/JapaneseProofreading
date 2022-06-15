@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"
         android:hint="文章を記入してください"
         android:inputType= "textMultiLine"
+        android:background="@drawable/frame_design"
         android:id="@+id/editText"/>
     <Button
         android:layout_width="wrap_content"

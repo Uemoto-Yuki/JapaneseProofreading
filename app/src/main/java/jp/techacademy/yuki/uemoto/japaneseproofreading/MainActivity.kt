@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("Error", e.toString())
+                editText.error = "文字を入力してください"
                 // 必要に応じてCallback
             }
         })
