@@ -3,7 +3,7 @@
 
 
     <string name="base_url">https://api.a3rt.recruit.co.jp/proofreading/v2/typo</string>
-    <string name="api_key">DZZkE8iyvs06Oq8Z2zstFG84eJDcqVnB</string>
+    <string name="api_key"></string>
 
     <!-- 校正前画面用文字列 -->
     <string name="before_tittle">文章校正機能アプリ</string>

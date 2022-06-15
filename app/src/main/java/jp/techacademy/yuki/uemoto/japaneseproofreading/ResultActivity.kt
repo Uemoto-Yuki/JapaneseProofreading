@@ -61,12 +61,14 @@ class ResultActivity : AppCompatActivity() {
 
             // このurlがaタグのhrefに指定された文字列
             when (url) {
-                "dialog_page?index=${index - 1}" -> {
+                "dialog_page" -> {
                     showDialog(); true
                 }
                 else -> false
+
             }
         }
+
         resulttext.text = csHtml //textView
         ResultEditText.setText(csHtml)
 
@@ -136,9 +138,9 @@ class ResultActivity : AppCompatActivity() {
 
     private fun showDialog() {
         var uri = Uri.parse("dialog_page")
-        val indexnum = uri.getQueryParameter("index")!!.toInt()
+//        val indexnum = uri.getQueryParameter("index")!!.toInt()
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
-        val alert = data1.alerts[indexnum]
+        val alert = data1.alerts[0]
         val suggest = alert.suggestion.toString()
         AlertDialog.Builder(this)
             .setTitle("訂正候補")
