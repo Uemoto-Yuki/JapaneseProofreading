@@ -1,21 +1,42 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="文章を記入してください"
-        android:inputType= "textMultiLine"
+        android:id="@+id/editText"
+        android:layout_width="350dp"
+        android:layout_height="180dp"
+        android:layout_marginTop="40dp"
         android:background="@drawable/frame_design"
-        android:id="@+id/editText"/>
-    <Button
+        android:hint="文章を記入してください"
+        android:inputType="textMultiLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding = "8dp"/>
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="校正"
-        android:id="@+id/button"/>
+        app:layout_constraintTop_toBottomOf="@+id/editText"
+        android:text=""
+        android:textColor="#e63946"
+        android:id="@+id/errorText1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/editText"
+        android:layout_marginTop="80dp"
+        android:text="校正"
+        app:backgroundTint="#a8dadc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+ />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

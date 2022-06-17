@@ -9,7 +9,8 @@ import android.view.MotionEvent.ACTION_UP
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
 
-class ClickListenableLinkMovementMethod(private val onClick: ((url: String) -> Boolean)) :
+class ClickListenableLinkMovementMethod(
+    private val onClick: ((url: String) -> Boolean)) :
     LinkMovementMethod() {
     override fun onTouchEvent(widget: TextView, buffer: Spannable, event: MotionEvent): Boolean {
         val url = getUrl(widget, buffer, event)

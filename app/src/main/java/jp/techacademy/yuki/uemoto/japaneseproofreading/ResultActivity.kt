@@ -1,27 +1,25 @@
 package jp.techacademy.yuki.uemoto.japaneseproofreading
 
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.text.Html
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.text.HtmlCompat
 import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+import androidx.core.widget.doOnTextChanged
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_result.*
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 
 class ResultActivity : AppCompatActivity() {
@@ -40,34 +38,53 @@ class ResultActivity : AppCompatActivity() {
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
         var str = data1.checkedSentence
 
-        Log.d("check1", str.split(' ').toString())
+        var resmessage = data1.message
+        if (resmessage == "ok" || resmessage == "pointed out") {
 
-        val str2 = str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
-            .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
-                val rawValue = it.replace("<<", "").replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
-                if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
-                    index++ //indexに1を足して
-                    "<font color=\"red\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
-                } else it //それ以外なら元に戻りまたチェック
-            }.joinToString(separator = "") //array型の文字列を全てくっつけて返す
+            Log.d("check1", str.split(' ').toString())
 
-        Log.d("check2", str2)
+            val str2 = str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
+                .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
+                    val rawValue =
+                        it.replace("<<", "").replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
+                    if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
+                        index++ //indexに1を足して
+                        "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                    } else it //それ以外なら元に戻りまたチェック
+                }.joinToString(separator = "") //array型の文字列を全てくっつけて返す
 
+            Log.d("check2", str2)
 
-        var csHtml = HtmlCompat.fromHtml(str2, FROM_HTML_MODE_COMPACT)
-        resulttext.text = csHtml //textView
-        ResultEditText.setText(csHtml)
+            var csHtml = HtmlCompat.fromHtml(str2, FROM_HTML_MODE_COMPACT)
+            resulttext.text = csHtml //textView
+            ResultEditText.setText(csHtml)
 
-        resulttext.setLinkClickListenable(str2) { url ->
-            Log.d("check3", url)
-                    showDialog(url)
-            true
+            resulttext.setLinkClickListenable(str2) { url ->
+                Log.d("check3", url)
+                showDialog(url)
+                true
+            }
+
+            ResultEditText.doOnTextChanged { text, start, count, after ->
+                if(ResultEditText.text.length > 500){
+                    errorText2.text = "文字数が制限を超えています"
+                    button2.isClickable = false
+                }else {
+                    errorText2.text = ""
+                    button2.isClickable = true
+                }
+            }
+
+            button2.setOnClickListener {
+                if (ResultEditText.text.isEmpty()){
+                    errorText2.text = "文字が入力されていません"
+                }else{
+                    restartRequest()
+                }
+            }
+
         }
 
-
-        button2.setOnClickListener {
-            restartRequest()
-        }
     }
 
     fun restartRequest() {
@@ -82,6 +99,8 @@ class ResultActivity : AppCompatActivity() {
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
+            .connectTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
+            .readTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
             .build()
 
         // Requestを作成
@@ -94,37 +113,42 @@ class ResultActivity : AppCompatActivity() {
                 response.body?.string()?.also {
                     val apiResponse = Gson().fromJson(it, ApiResponse::class.java)
                     intent.putExtra("EXTRA_DATA", apiResponse)
-                    var str = apiResponse.checkedSentence
-                    index = 0
-                    handler.post {
-                        val str2 = str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
-                            .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
-                                val rawValue = it.replace("<<", "").replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
-                                if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
-                                    index++ //indexに1を足して
-                                    "<font color=\"red\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
-                                } else it //それ以外なら元に戻りまたチェック
-                            }.joinToString(separator = "")
-                        Log.d("check6", str2)
 
-                        val csHtml = HtmlCompat.fromHtml(str2, FROM_HTML_MODE_COMPACT)
-                        resulttext.text = csHtml
-                        ResultEditText.setText(csHtml)
+                        var str = apiResponse.checkedSentence
+                        index = 0
+                        handler.post {
+                            val str2 =
+                                str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
+                                    .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
+                                        val rawValue = it.replace("<<", "")
+                                            .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
+                                        if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
+                                            index++ //indexに1を足して
+                                            "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                                        } else it //それ以外なら元に戻りまたチェック
+                                    }.joinToString(separator = "")
+                            Log.d("check6", str2)
 
-                        resulttext.setLinkClickListenable(str2) { url ->
-                            // この url が a タグの href に指定された文字列
-                            Log.d("check5", url)
-                            showDialog(url)
-                            true
+                            val csHtml = HtmlCompat.fromHtml(str2, FROM_HTML_MODE_COMPACT)
+                            resulttext.text = csHtml
+                            ResultEditText.setText(csHtml)
+
+                            resulttext.setLinkClickListenable(str2) { url ->
+                                // この url が a タグの href に指定された文字列
+                                Log.d("check5", url)
+                                showDialog(url)
+                                true
+                            }
+
+
                         }
 
-                    }
+
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("Error", e.toString())
-                ResultEditText.error = "予期せぬエラーが発生しました"
                 // 必要に応じてCallback
             }
             // 必要に応じてCallback
@@ -133,10 +157,12 @@ class ResultActivity : AppCompatActivity() {
 
     }
 
+    var selectItem:Int? = null
+
 
     private fun showDialog(url: String) {
         var array = url.split("index=")
-        val indexnum = array[1].toInt()
+        val indexnum = array[1].toInt() //index=x を示す
         Log.d("check4", url)
         Log.d("check8", indexnum.toString())
 
@@ -144,13 +170,12 @@ class ResultActivity : AppCompatActivity() {
         val alertsList = data1.alerts
         Log.d("checkalert", alertsList.toString())
 
-        val suggest = alertsList[indexnum].suggestion.toString()
+        val suggest = alertsList[indexnum].suggestion
+        val suggestList: Array<CharSequence> = suggest.toTypedArray()
 
-//        val alert = data1.alerts[0]
-//        val suggest = alert.suggestion.toString()
         AlertDialog.Builder(this)
-            .setTitle("訂正候補")
-            .setMessage(suggest)
+            .setTitle("訂正候補を選択")
+            .setSingleChoiceItems(suggestList, 0) { _, _ -> }
             .setPositiveButton("OK") { _, _ ->
                 // TODO:Yesが押された時の挙動
             }
