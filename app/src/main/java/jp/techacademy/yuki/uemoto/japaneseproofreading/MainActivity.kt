@@ -7,12 +7,11 @@ import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.View.INVISIBLE
+import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
-import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_result.*
@@ -20,6 +19,9 @@ import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+
+
+private val handler = Handler(Looper.getMainLooper())
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,21 +32,50 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         title = getString(R.string.before_tittle)
         button.setOnClickListener {
-            if (editText.text.isEmpty()){
+            progress.visibility = ProgressBar.VISIBLE
+            if (edit_Text.text.isEmpty()) {
                 errorText1.text = "文字が入力されていません"
-            }else{ startRequest()}
-        }
-        editText.doOnTextChanged { text, start, count, after ->
-            if(editText.text.length > 500){
-                 errorText1.text = "文字数が制限を超えています"
-                button.isClickable = false
-            }else {
-                errorText1.text = ""
-                button.isClickable = true
+                progress.visibility = ProgressBar.INVISIBLE
+            } else {
+                startRequest()
+                progress.visibility = ProgressBar.INVISIBLE
             }
         }
 
+
+
+
+
+        edit_Text.doOnTextChanged { text, start, count, after ->
+            if (edit_Text.text.isNotEmpty()) {
+                var validation1 = edit_Text.text.toString().indexOf("""<""")
+                var validation2 = edit_Text.text.toString().indexOf(""">""")
+                var validation3 = edit_Text.text.toString().indexOf(""" """)
+
+                if (edit_Text.text.length > 500) {
+                    errorText1.text = "文字数が制限を超えています"
+                    button.isClickable = false
+
+                } else if (validation1 > -1 || validation2 > -1 || validation3 > -1) {
+                    errorText1.text = "不等号(<,>)や半角スペースは使用できません"
+                    button.isClickable = false
+                }else {
+                    errorText1.text = ""
+                    button.isClickable = true
+                }
+
+            } else if (edit_Text.text.isNullOrBlank()) {
+                errorText1.text = "スペースが入力されている場合や\n" +
+                        "文字数が0の時はチェックできません"
+                button.isClickable = false
+            } else {
+                errorText1.text = ""
+                button.isClickable = true
+            }
+
+        }
     }
+
 
     // OkHttpClientを作成
     fun startRequest() {
@@ -52,16 +83,18 @@ class MainActivity : AppCompatActivity() {
         val url = StringBuilder()
             .append(getString(R.string.base_url))
             .append("?apikey=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
-            .append("&sentence=").append(editText.text.toString())
+            .append("&sentence=").append(edit_Text.text.toString())
             .toString()
 
-        val client = OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .connectTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
-            .readTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
-            .build()
+        val client =
+            OkHttpClient.Builder()
+                .addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                })
+                .connectTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
+                .readTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
+                .build()
+
 
         // Requestを作成
         val request = Request.Builder()
@@ -72,14 +105,17 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) { // 成功時の処理、これ参考
 
                 response.body?.string()?.also {
-                     val apiResponse = Gson().fromJson(it, ApiResponse::class.java)
-                     val intent = Intent(application, ResultActivity::class.java)
-                     intent.putExtra("EXTRA_DATA", apiResponse)
-                     startActivity(intent)
-                 }
+                    val apiResponse = Gson().fromJson(it, ApiResponse::class.java)
+                    val intent = Intent(application, ResultActivity::class.java)
+                    intent.putExtra("EXTRA_DATA", apiResponse)
+                    startActivity(intent)
+                }
             }
+
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("Error", e.toString())
+                handler.post {
+                    Toast.makeText(this@MainActivity, "時間をおいてもう一度お試しください", Toast.LENGTH_LONG).show()
+                }
                 // 必要に応じてCallback
             }
         })
