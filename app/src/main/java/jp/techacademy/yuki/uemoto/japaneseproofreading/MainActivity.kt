@@ -10,91 +10,95 @@ import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.HtmlCompat
 import androidx.core.widget.doOnTextChanged
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_result.*
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 
-private val handler = Handler(Looper.getMainLooper())
-
-
 class MainActivity : AppCompatActivity() {
+
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var choiceItem = 0
+    private var changeStr = ""
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
-        title = getString(R.string.before_tittle)
-        button.setOnClickListener {
-            progress.visibility = ProgressBar.VISIBLE
-            if (edit_Text.text.isEmpty()) {
-                errorText1.text = "文字が入力されていません"
-                progress.visibility = ProgressBar.INVISIBLE
-            } else {
-                startRequest()
-                progress.visibility = ProgressBar.INVISIBLE
-            }
-        }
+        title = getString(R.string.after_tittle)
 
+        ResultEditText.doOnTextChanged { text, start, count, after ->
+            if (ResultEditText.text.isNotEmpty()) {
+                var validation1 = ResultEditText.text.toString().indexOf("""<""")
+                var validation2 = ResultEditText.text.toString().indexOf(""">""")
+                var validation3 = ResultEditText.text.toString().indexOf(""" """)
 
-
-
-
-        edit_Text.doOnTextChanged { text, start, count, after ->
-            if (edit_Text.text.isNotEmpty()) {
-                var validation1 = edit_Text.text.toString().indexOf("""<""")
-                var validation2 = edit_Text.text.toString().indexOf(""">""")
-                var validation3 = edit_Text.text.toString().indexOf(""" """)
-
-                if (edit_Text.text.length > 500) {
-                    errorText1.text = "文字数が制限を超えています"
-                    button.isClickable = false
+                if (ResultEditText.text.length > 500) {
+                    errorText2.text = "文字数が制限を超えています"
+                    button2.isClickable = false
 
                 } else if (validation1 > -1 || validation2 > -1 || validation3 > -1) {
-                    errorText1.text = "不等号(<,>)や半角スペースは使用できません"
-                    button.isClickable = false
-                }else {
-                    errorText1.text = ""
-                    button.isClickable = true
+                    errorText2.text = "不等号(<,>)や半角スペースは使用できません"
+                    button2.isClickable = false
+
+                } else {
+                    errorText2.text = ""
+                    button2.isClickable = true
                 }
 
-            } else if (edit_Text.text.isNullOrBlank()) {
-                errorText1.text = "スペースが入力されている場合や\n" +
+            } else if (ResultEditText.text.isNullOrBlank()) {
+                errorText2.text = "スペースが入力されている場合や\n" +
                         "文字数が0の時はチェックできません"
-                button.isClickable = false
-            } else {
-                errorText1.text = ""
-                button.isClickable = true
-            }
+                button2.isClickable = false
 
+            } else {
+                errorText2.text = ""
+                button2.isClickable = true
+            }
         }
+
+        button2.setOnClickListener {
+            button2.isClickable = false
+            progress2.visibility = ProgressBar.VISIBLE
+
+            if (ResultEditText.text.isEmpty()) {
+                progress2.visibility = ProgressBar.INVISIBLE
+                errorText2.text = "文字が入力されていません"
+                button2.isClickable = true
+            } else {
+                progress2.visibility = ProgressBar.VISIBLE
+                startRequest()
+
+
+            }
+        }
+
     }
 
 
-    // OkHttpClientを作成
     fun startRequest() {
 
         val url = StringBuilder()
             .append(getString(R.string.base_url))
             .append("?apikey=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
-            .append("&sentence=").append(edit_Text.text.toString())
+            .append("&sentence=").append(ResultEditText.text.toString())
             .toString()
 
-        val client =
-            OkHttpClient.Builder()
-                .addInterceptor(HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
-                })
-                .connectTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
-                .readTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
-                .build()
-
+        val client = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .connectTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
+            .readTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
+            .build()
 
         // Requestを作成
         val request = Request.Builder()
@@ -103,28 +107,144 @@ class MainActivity : AppCompatActivity() {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) { // 成功時の処理、これ参考
-
                 response.body?.string()?.also {
                     val apiResponse = Gson().fromJson(it, ApiResponse::class.java)
-                    val intent = Intent(application, ResultActivity::class.java)
                     intent.putExtra("EXTRA_DATA", apiResponse)
-                    startActivity(intent)
+
+                    var str = apiResponse.checkedSentence
+                    var index = 0
+                    handler.post {
+                        val str2 =
+                            str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
+                                .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
+                                    val rawValue = it.replace("<<", "")
+                                        .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
+                                    if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
+                                        index++ //indexに1を足して
+                                        "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                                    } else it //それ以外なら元に戻りまたチェック
+                                }.joinToString(separator = "")
+                        Log.d("check6", str2)
+
+                        resulttext.setLinkClickListenable(str2) { url ->
+                            // この url が a タグの href に指定された文字列
+                            Log.d("check5", url)
+                            showDialog(url)
+                            true
+                        }
+                        val csHtml = HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                        resulttext.text = csHtml
+                        ResultEditText.setText(csHtml)
+                        progress2.visibility = ProgressBar.INVISIBLE
+                        button2.isClickable = true
+
+
+
+                    }
+
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
                 handler.post {
-                    Toast.makeText(this@MainActivity, "時間をおいてもう一度お試しください", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, "時間をおいてもう一度お試しください", Toast.LENGTH_LONG)
+                        .show()
+                    // 必要に応じてCallback
                 }
-                // 必要に応じてCallback
+                progress2.visibility = ProgressBar.INVISIBLE
+                button2.isClickable = true
             }
+            // 必要に応じてCallback
         })
+
+
     }
+
+
+    private fun showDialog(url: String) {
+        var array = url.split("index=")
+        val indexnum = array[1].toInt() //index=x を示す
+        Log.d("check4", url)
+        Log.d("check8", indexnum.toString())
+
+        val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
+        val alertsList = data1.alerts
+        Log.d("checkalert", alertsList.toString())
+
+        val suggest = alertsList[indexnum].suggestion
+        val suggestList: Array<CharSequence> = suggest.toTypedArray()
+        var index = 0
+
+        var str = data1.checkedSentence
+
+        var str2 =
+            str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
+                .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
+                    val rawValue = it.replace("<<", "")
+                        .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
+                    if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
+                        index++ //indexに1を足して
+                        "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                    } else it //それ以外なら元に戻りまたチェック
+                }.joinToString(separator = "")
+
+        AlertDialog.Builder(this)
+            .setTitle("訂正候補を選択")
+            .setSingleChoiceItems(suggestList, 0) { dialog, which ->
+                choiceItem = which
+
+            }
+            .setPositiveButton("OK") { dialog, which ->
+
+                when (choiceItem) {
+                    0 -> {
+                        Log.d("test0", str2)
+                        str2 = str2.replace(
+                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
+                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>"
+                        )
+
+                        Log.d("testold", "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>")
+                        Log.d("testnew", "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>")
+                        Log.d("test0.5", str2)
+
+                    }
+
+                    1 -> {
+                        Log.d("test1", str2)
+                        str2 = str2.replace(
+                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
+                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[1]}</a>"
+                        )
+                        Log.d("test1.5", str2)
+                    }
+
+                    2 -> {
+                        Log.d("test2", str2)
+                        str2 = str2.replace(
+                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
+                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[2]}</a>"
+                        )
+                        Log.d("test2.5", str2)
+                    }
+                    else -> {
+                    }
+
+                }
+                Log.d("test", str2)
+                val csHtml = HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                ResultEditText.setText(csHtml)
+                resulttext.text = csHtml
+                changeStr = csHtml.toString()
+            }.setNegativeButton("NO") { dialog, which ->
+            }
+            .show()
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
-        menu.findItem(R.id.action_share).isVisible = false
         return true
     }
 
@@ -135,10 +255,20 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(applicationContext, HelpActivity::class.java)
             startActivity(intent)
             return true
+        } else if (id == R.id.action_share) {
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                val string = resulttext.text.toString()
+                putExtra(Intent.EXTRA_TEXT, string)
+                type = "text/plain"
+            }
+            val shareIntent = Intent.createChooser(sendIntent, null)
+            startActivity(shareIntent)
         }
+
+        true
         return super.onOptionsItemSelected(item)
     }
 
 
 }
-
