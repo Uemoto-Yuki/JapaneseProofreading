@@ -9,7 +9,7 @@
     <string name="before_tittle">文章校正機能アプリ</string>
 
     <!-- 校正後画面用文字列 -->
-    <string name="after_tittle">校正結果</string>
+    <string name="after_tittle">校正する</string>
 
 
 
@@ -23,12 +23,15 @@
         \n
         ※校正結果について\n
         \n
-        ・Suggestionsについて\n
+        ・訂正候補について\n
         指摘箇所を置き換える候補です。\n
-        より自然な文字から順に挙げています。\n
+        より自然な文字から上から順に挙げています。\n
+        置き換えたい場合は任意の文字を選択してOKボタンを押してください。\n
+        置き換えない場合はNOボタンを押してください。\n
+        \n
         ※入力制限について\n
         本アプリで検査できる文字数は、1度に500文字までです。\n
-        絵文字は使用不可です。\n</string>
+        不等号や半角スペースは使用できません。\n</string>
 
     <string name="help_tittle">ヘルプ</string>
 

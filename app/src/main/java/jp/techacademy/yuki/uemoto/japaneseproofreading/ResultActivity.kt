@@ -30,6 +30,7 @@ class ResultActivity : AppCompatActivity() {
 
 
     private val handler = Handler(Looper.getMainLooper())
+    private var choiceItem = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -215,10 +216,12 @@ class ResultActivity : AppCompatActivity() {
             AlertDialog.Builder(this)
                 .setTitle("訂正候補を選択")
                 .setSingleChoiceItems(suggestList, 0) { dialog, which ->
+                    choiceItem = which
+
                 }
                 .setPositiveButton("OK") { dialog, which ->
 
-                    when (which) {
+                    when (choiceItem) {
                         0 -> {
                             str2 = str2.replace(
                                 "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">${alertsList[indexnum].word}</a></font>",
