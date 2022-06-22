@@ -31,6 +31,7 @@ class ResultActivity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var choiceItem = 0
+    private var changeStr = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +52,7 @@ class ResultActivity : AppCompatActivity() {
                     it.replace("<<", "").replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
                 if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
                     index++ //indexに1を足して
-                    "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                    "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
                 } else it //それ以外なら元に戻りまたチェック
             }.joinToString(separator = "") //array型の文字列を全てくっつけて返す
 
@@ -66,10 +67,6 @@ class ResultActivity : AppCompatActivity() {
             showDialog(url)
             true
         }
-
-
-
-
 
         ResultEditText.doOnTextChanged { text, start, count, after ->
             if (ResultEditText.text.isNotEmpty()) {
@@ -153,7 +150,7 @@ class ResultActivity : AppCompatActivity() {
                                             .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
                                         if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
                                             index++ //indexに1を足して
-                                            "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
                                         } else it //それ以外なら元に戻りまたチェック
                                     }.joinToString(separator = "")
                             Log.d("check6", str2)
@@ -202,6 +199,10 @@ class ResultActivity : AppCompatActivity() {
             var index = 0
 
             var str = data1.checkedSentence
+            if(changeStr.isNotEmpty()){
+                str = changeStr
+            }
+
             var str2 =
                 str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
                     .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
@@ -209,7 +210,7 @@ class ResultActivity : AppCompatActivity() {
                             .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
                         if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
                             index++ //indexに1を足して
-                            "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
                         } else it //それ以外なら元に戻りまたチェック
                     }.joinToString(separator = "")
 
@@ -223,39 +224,46 @@ class ResultActivity : AppCompatActivity() {
 
                     when (choiceItem) {
                         0 -> {
-                            str2 = str2.replace(
-                                "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">${alertsList[indexnum].word}</a></font>",
-                                "<a href=\"dialog_page?index=${index - 1}\">${suggestList[0]}</a>"
-                            )
                             Log.d("test0", str2)
+                            str2 = str2.replace(
+                                "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
+                                "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>"
+                            )
+
+                            Log.d("testold", "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>")
+                            Log.d("testnew", "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>")
+                            Log.d("test0.5", str2)
+
                         }
 
                         1 -> {
-                            str2 = str2.replace(
-                                "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">${alertsList[indexnum].word}</a></font>",
-                                "<a href=\"dialog_page?index=${index - 1}\">${suggestList[1]}</a>"
-                            )
                             Log.d("test1", str2)
+                            str2 = str2.replace(
+                                "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
+                                "<a href=\"dialog_page?index=${indexnum}\">${suggest[1]}</a>"
+                            )
+                            Log.d("test1.5", str2)
                         }
 
                         2 -> {
-                            str2 = str2.replace(
-                                "<font color=\"#e63946\"><a href=\"dialog_page?index=${index - 1}\">${alertsList[indexnum].word}</a></font>",
-                                "<a href=\"dialog_page?index=${index - 1}\">${suggestList[2]}</a>"
-                            )
                             Log.d("test2", str2)
+                            str2 = str2.replace(
+                                "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
+                                "<a href=\"dialog_page?index=${indexnum}\">${suggest[2]}</a>"
+                            )
+                            Log.d("test2.5", str2)
                         }
                         else -> {
                         }
+
                     }
                     Log.d("test", str2)
                     val csHtml = HtmlCompat.fromHtml(str2, FROM_HTML_MODE_COMPACT)
                     ResultEditText.setText(csHtml)
-
+                    resulttext.text = csHtml
+                    changeStr = csHtml.toString()
                 }
-
                 .show()
-
         }
 
 

@@ -6,10 +6,10 @@
     <string name="api_key"></string>
 
     <!-- 校正前画面用文字列 -->
-    <string name="before_tittle">文章校正機能アプリ</string>
+    <string name="before_tittle">Text Checker</string>
 
     <!-- 校正後画面用文字列 -->
-    <string name="after_tittle">校正する</string>
+    <string name="after_tittle">Text Checker</string>
 
 
 
