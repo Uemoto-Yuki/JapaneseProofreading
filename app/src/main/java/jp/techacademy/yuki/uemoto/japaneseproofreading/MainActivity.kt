@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var choiceItem = 0
     private var changeStr = ""
+    private var str2 = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,8 +56,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             } else if (ResultEditText.text.isNullOrBlank()) {
-                errorText2.text = "スペースが入力されている場合や\n" +
-                        "文字数が0の時はチェックできません"
+                errorText2.text = "スペースのみの入力や文字数0はチェックできません"
                 button2.isClickable = false
 
             } else {
@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
         button2.setOnClickListener {
             button2.isClickable = false
             progress2.visibility = ProgressBar.VISIBLE
+            changeStr = ""
 
             if (ResultEditText.text.isEmpty()) {
                 progress2.visibility = ProgressBar.INVISIBLE
@@ -81,10 +82,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        resulttext.setLinkClickListenable(str2) { url -> // この urlはaタグのhrefに指定された文字列
+            showDialog(url)
+            true
+        }
+
     }
 
 
-    fun startRequest() {
+    private fun startRequest() {
 
         val url = StringBuilder()
             .append(getString(R.string.base_url))
@@ -114,7 +120,7 @@ class MainActivity : AppCompatActivity() {
                     var str = apiResponse.checkedSentence
                     var index = 0
                     handler.post {
-                        val str2 =
+                        var str2 =
                             str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
                                 .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
                                     val rawValue = it.replace("<<", "")
@@ -124,21 +130,14 @@ class MainActivity : AppCompatActivity() {
                                         "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
                                     } else it //それ以外なら元に戻りまたチェック
                                 }.joinToString(separator = "")
+
                         Log.d("check6", str2)
 
-                        resulttext.setLinkClickListenable(str2) { url ->
-                            // この url が a タグの href に指定された文字列
-                            Log.d("check5", url)
-                            showDialog(url)
-                            true
-                        }
                         val csHtml = HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT)
                         resulttext.text = csHtml
                         ResultEditText.setText(csHtml)
                         progress2.visibility = ProgressBar.INVISIBLE
                         button2.isClickable = true
-
-
 
                     }
 
@@ -149,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                 handler.post {
                     Toast.makeText(this@MainActivity, "時間をおいてもう一度お試しください", Toast.LENGTH_LONG)
                         .show()
-                    // 必要に応じてCallback
+
                 }
                 progress2.visibility = ProgressBar.INVISIBLE
                 button2.isClickable = true
@@ -164,12 +163,9 @@ class MainActivity : AppCompatActivity() {
     private fun showDialog(url: String) {
         var array = url.split("index=")
         val indexnum = array[1].toInt() //index=x を示す
-        Log.d("check4", url)
-        Log.d("check8", indexnum.toString())
 
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
         val alertsList = data1.alerts
-        Log.d("checkalert", alertsList.toString())
 
         val suggest = alertsList[indexnum].suggestion
         val suggestList: Array<CharSequence> = suggest.toTypedArray()
@@ -177,16 +173,22 @@ class MainActivity : AppCompatActivity() {
 
         var str = data1.checkedSentence
 
+        Log.d("検証1", str)
+
         var str2 =
-            str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
-                .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
-                    val rawValue = it.replace("<<", "")
-                        .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
-                    if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
-                        index++ //indexに1を足して
-                        "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
-                    } else it //それ以外なら元に戻りまたチェック
-                }.joinToString(separator = "")
+            if (changeStr.isNullOrEmpty()) {
+                str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
+                    .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
+                        val rawValue = it.replace("<<", "")
+                            .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
+                        if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
+                            index++ //indexに1を足して
+                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                        } else it //それ以外なら元に戻りまたチェック
+                    }.joinToString(separator = "")
+            } else {
+                changeStr
+            }
 
         AlertDialog.Builder(this)
             .setTitle("訂正候補を選択")
@@ -198,44 +200,62 @@ class MainActivity : AppCompatActivity() {
 
                 when (choiceItem) {
                     0 -> {
-                        Log.d("test0", str2)
-                        str2 = str2.replace(
+                        changeStr = str2.replace(
                             "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
                             "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>"
                         )
-
-                        Log.d("testold", "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>")
-                        Log.d("testnew", "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>")
-                        Log.d("test0.5", str2)
+                        Log.d(
+                            "testold",
+                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>"
+                        )
+                        Log.d(
+                            "testnew",
+                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>"
+                        )
 
                     }
 
                     1 -> {
-                        Log.d("test1", str2)
-                        str2 = str2.replace(
+                        changeStr = str2.replace(
                             "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
                             "<a href=\"dialog_page?index=${indexnum}\">${suggest[1]}</a>"
+
                         )
-                        Log.d("test1.5", str2)
+                        Log.d(
+                            "testold",
+                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>"
+                        )
+                        Log.d(
+                            "testnew",
+                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[1]}</a>"
+                        )
                     }
 
                     2 -> {
-                        Log.d("test2", str2)
-                        str2 = str2.replace(
+                        changeStr = str2.replace(
                             "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
                             "<a href=\"dialog_page?index=${indexnum}\">${suggest[2]}</a>"
                         )
-                        Log.d("test2.5", str2)
+                        Log.d(
+                            "testold",
+                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>"
+                        )
+                        Log.d(
+                            "testnew",
+                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[2]}</a>"
+                        )
                     }
                     else -> {
                     }
 
                 }
                 Log.d("test", str2)
-                val csHtml = HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                Log.d("testchangeStr", changeStr)
+                val csHtml = HtmlCompat.fromHtml(changeStr, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 ResultEditText.setText(csHtml)
                 resulttext.text = csHtml
-                changeStr = csHtml.toString()
+                Log.d("check12", changeStr)
+
             }.setNegativeButton("NO") { dialog, which ->
             }
             .show()
