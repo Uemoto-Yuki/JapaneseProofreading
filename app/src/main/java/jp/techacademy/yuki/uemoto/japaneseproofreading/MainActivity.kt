@@ -173,6 +173,7 @@ class MainActivity : AppCompatActivity() {
 
         var str = data1.checkedSentence
 
+
         Log.d("検証1", str)
 
         var str2 =
@@ -201,48 +202,23 @@ class MainActivity : AppCompatActivity() {
                 when (choiceItem) {
                     0 -> {
                         changeStr = str2.replace(
-                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
-                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>"
+                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
+                            "${suggest[0]}"
                         )
-                        Log.d(
-                            "testold",
-                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>"
-                        )
-                        Log.d(
-                            "testnew",
-                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[0]}</a>"
-                        )
-
                     }
 
                     1 -> {
                         changeStr = str2.replace(
-                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
-                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[1]}</a>"
+                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
+                            "${suggest[1]}"
 
-                        )
-                        Log.d(
-                            "testold",
-                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>"
-                        )
-                        Log.d(
-                            "testnew",
-                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[1]}</a>"
                         )
                     }
 
                     2 -> {
                         changeStr = str2.replace(
-                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>",
-                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[2]}</a>"
-                        )
-                        Log.d(
-                            "testold",
-                            "<a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a>"
-                        )
-                        Log.d(
-                            "testnew",
-                            "<a href=\"dialog_page?index=${indexnum}\">${suggest[2]}</a>"
+                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
+                            "${suggest[2]}"
                         )
                     }
                     else -> {
