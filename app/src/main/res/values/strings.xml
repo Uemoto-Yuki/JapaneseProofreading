@@ -5,39 +5,49 @@
     <string name="base_url">https://api.a3rt.recruit.co.jp/proofreading/v2/typo</string>
     <string name="api_key"></string>
 
-    <!-- 校正前画面用文字列 -->
-    <string name="before_tittle">Text Checker</string>
 
     <!-- 校正後画面用文字列 -->
-    <string name="after_tittle">Text Checker</string>
-
+    <string name="Alert_message">
+        校正後、画面下側のボックス内のハイライト文字を押すと、指摘箇所を置き換える候補が表示されます。\n
+        置き換えたい場合は任意の文字を選択してOKボタンを押してください。\n
+        置き換えない場合はCANCELボタンを押してください。
+        </string>
 
 
     <!-- ヘルプ画面用文字列 -->
-    <string name="paragraph">
+    <string name="AppAbst">
         \n
-        本アプリでは、入力されたテキストの\n
-        文法的に疑わしい部分を指摘します。\n
-        疑わしい部分とは、誤字の可能性が高い部分や、\n
-        誤字では無いが珍しい使い方、他により良い表現がありそうな部分等を指します。\n
+        本アプリでは、入力されたテキストの文法的に疑わしい部分を指摘します。
+        疑わしい部分とは、誤字の可能性が高い部分や、誤字では無いが珍しい使い方、他により良い表現がありそうな部分等を指します。
         \n
-        ※校正結果について\n
+        </string>
+    <string name="AppIntro">
+        \n
+        画面上側、白背景ボックス内にテキストを入力してください。画面最下部のcheck!ボタンを押下すると校正します。
+        ハイライト部分は指摘箇所です。
+        下側、灰色枠内の文章のハイライト部分は押下可能です。
+        押すと訂正候補が表示されます。\n
+        ※入力制限について\n
+        本アプリで検査できる文字数は、1度に500文字までです。不等号や半角スペースは使用できません。\n
+        \n
+    </string>
+
+    <string name="AppResult">
         \n
         ・訂正候補について\n
-        指摘箇所を置き換える候補です。\n
-        より自然な文字から上から順に挙げています。\n
-        置き換えたい場合は任意の文字を選択してOKボタンを押してください。\n
+        指摘箇所を置き換える候補です。より自然な文字から上から順に挙げています。
+        置き換えたい場合は任意の文字を選択してOKボタンを押してください。
         置き換えない場合はNOボタンを押してください。\n
-        \n
-        ※入力制限について\n
-        本アプリで検査できる文字数は、1度に500文字までです。\n
-        不等号や半角スペースは使用できません。\n</string>
+    </string>
 
     <string name="help_tittle">ヘルプ</string>
 
     <!-- 共有機能文字列 -->
     <string name="share_tittle">共有方法を選択</string>
     <string name="not_found_share">共有可能なアプリが存在しません</string>
+
+    <!-- 共有機能文字列 -->
+    <string name="tutorial_dialog">OK</string>
 
 
 </resources>

@@ -10,9 +10,6 @@ class HelpActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_help)
-        val paragraph = resources.getString(R.string.paragraph)
-        HelpText.text = paragraph
-
         title = getString(R.string.help_tittle)
     }
 }

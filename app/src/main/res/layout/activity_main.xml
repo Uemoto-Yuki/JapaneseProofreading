@@ -5,6 +5,7 @@
     android:layout_height="match_parent">
 
     <EditText
+        android:gravity="left|top"
         android:textColor="#191970"
         android:textSize = "14sp"
         android:id="@+id/ResultEditText"
@@ -26,6 +27,7 @@
         android:layout_height="180dp"
         android:layout_margin="16dp"
         android:background="@drawable/result_design"
+        android:hint="ここに指摘結果が表示されます"
         android:text="ここに指摘結果が表示されます"
         android:id="@+id/resulttext"
         app:layout_constraintEnd_toEndOf="parent"
@@ -44,11 +46,12 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageButton
-        android:id="@+id/button2"
+        android:id="@+id/button"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:src="@drawable/button_select"
         android:scaleType="fitCenter"
+        android:background="@null"
         android:padding="0dp"
         android:layout_marginTop="16dp"
         android:text="校正"

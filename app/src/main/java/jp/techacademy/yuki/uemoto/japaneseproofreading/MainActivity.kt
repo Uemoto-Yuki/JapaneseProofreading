@@ -7,7 +7,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -34,7 +33,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        title = getString(R.string.after_tittle)
+        title = "Text Checker"
+
+        val dialogFragment = Tutorial()
+
+        dialogFragment.show(supportFragmentManager, "dialog")
 
         ResultEditText.doOnTextChanged { text, start, count, after ->
             if (ResultEditText.text.isNotEmpty()) {
@@ -44,36 +47,36 @@ class MainActivity : AppCompatActivity() {
 
                 if (ResultEditText.text.length > 500) {
                     errorText2.text = "文字数が制限を超えています"
-                    button2.isClickable = false
+                    button.isClickable = false
 
                 } else if (validation1 > -1 || validation2 > -1 || validation3 > -1) {
                     errorText2.text = "不等号(<,>)や半角スペースは使用できません"
-                    button2.isClickable = false
+                    button.isClickable = false
 
                 } else {
                     errorText2.text = ""
-                    button2.isClickable = true
+                    button.isClickable = true
                 }
 
             } else if (ResultEditText.text.isNullOrBlank()) {
                 errorText2.text = "スペースのみの入力や文字数0はチェックできません"
-                button2.isClickable = false
+                button.isClickable = false
 
             } else {
                 errorText2.text = ""
-                button2.isClickable = true
+                button.isClickable = true
             }
         }
 
-        button2.setOnClickListener {
-            button2.isClickable = false
+        button.setOnClickListener {
+            button.isClickable = false
             progress2.visibility = ProgressBar.VISIBLE
             changeStr = ""
 
             if (ResultEditText.text.isEmpty()) {
                 progress2.visibility = ProgressBar.INVISIBLE
                 errorText2.text = "文字が入力されていません"
-                button2.isClickable = true
+                button.isClickable = true
             } else {
                 progress2.visibility = ProgressBar.VISIBLE
                 startRequest()
@@ -88,6 +91,8 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+
 
 
     private fun startRequest() {
@@ -127,7 +132,7 @@ class MainActivity : AppCompatActivity() {
                                         .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
                                     if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
                                         index++ //indexに1を足して
-                                        "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                                        "<font color=\"#FF4500\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
                                     } else it //それ以外なら元に戻りまたチェック
                                 }.joinToString(separator = "")
 
@@ -137,7 +142,7 @@ class MainActivity : AppCompatActivity() {
                         resulttext.text = csHtml
                         ResultEditText.setText(csHtml)
                         progress2.visibility = ProgressBar.INVISIBLE
-                        button2.isClickable = true
+                        button.isClickable = true
 
                     }
 
@@ -151,7 +156,7 @@ class MainActivity : AppCompatActivity() {
 
                 }
                 progress2.visibility = ProgressBar.INVISIBLE
-                button2.isClickable = true
+                button.isClickable = true
             }
             // 必要に応じてCallback
         })
@@ -184,7 +189,7 @@ class MainActivity : AppCompatActivity() {
                             .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
                         if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
                             index++ //indexに1を足して
-                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                            "<font color=\"#FF4500\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
                         } else it //それ以外なら元に戻りまたチェック
                     }.joinToString(separator = "")
             } else {
@@ -202,14 +207,14 @@ class MainActivity : AppCompatActivity() {
                 when (choiceItem) {
                     0 -> {
                         changeStr = str2.replace(
-                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
+                            "<font color=\"#FF4500\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
                             "${suggest[0]}"
                         )
                     }
 
                     1 -> {
                         changeStr = str2.replace(
-                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
+                            "<font color=\"#FF4500\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
                             "${suggest[1]}"
 
                         )
@@ -217,7 +222,7 @@ class MainActivity : AppCompatActivity() {
 
                     2 -> {
                         changeStr = str2.replace(
-                            "<font color=\"#ff8c00\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
+                            "<font color=\"#FF4500\"><a href=\"dialog_page?index=${indexnum}\">${alertsList[indexnum].word}</a></font>",
                             "${suggest[2]}"
                         )
                     }
@@ -225,21 +230,17 @@ class MainActivity : AppCompatActivity() {
                     }
 
                 }
-                Log.d("test", str2)
-                Log.d("testchangeStr", changeStr)
                 val csHtml = HtmlCompat.fromHtml(changeStr, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 ResultEditText.setText(csHtml)
                 resulttext.text = csHtml
-                Log.d("check12", changeStr)
 
-            }.setNegativeButton("NO") { dialog, which ->
+            }.setNegativeButton("CANCEL") { dialog, which ->
             }
             .show()
     }
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
