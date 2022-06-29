@@ -93,8 +93,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-
     private fun startRequest() {
 
         val url = StringBuilder()
@@ -117,34 +115,49 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         client.newCall(request).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) { // 成功時の処理、これ参考
+            override fun onResponse(call: Call, response: Response) { // 成功時の処理
                 response.body?.string()?.also {
                     val apiResponse = Gson().fromJson(it, ApiResponse::class.java)
                     intent.putExtra("EXTRA_DATA", apiResponse)
-
-                    var str = apiResponse.checkedSentence
+                    var resStatus = apiResponse.status
+                    var str = apiResponse.checkedSentence //checkedSentenceはチェック後の文。指摘箇所を<<>>で示す。
                     var index = 0
-                    handler.post {
-                        var str2 =
-                            str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
-                                .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
-                                    val rawValue = it.replace("<<", "")
-                                        .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
-                                    if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
-                                        index++ //indexに1を足して
-                                        "<font color=\"#FF4500\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
-                                    } else it //それ以外なら元に戻りまたチェック
-                                }.joinToString(separator = "")
+                    //指摘がある時
+                    if (resStatus == 1) {
+                        handler.post {
+                            var str2 =
+                                str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
+                                    .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
+                                        val rawValue = it.replace("<<", "")
+                                            .replace(">>", "") //itは要素の文字列をさす。<<>>を削除した要素を定義
+                                        if (it.indexOf("<<") == 0) { //もし、前から<<を検索して0番目の場合、
+                                            index++ //indexに1を足して
+                                            "<font color=\"#FF4500\"><a href=\"dialog_page?index=${index - 1}\">$rawValue</a></font>" //strにhtmタグをくっつける
+                                        } else it //それ以外なら元に戻りまたチェック
+                                    }.joinToString(separator = "")
 
-                        Log.d("check6", str2)
+                            val csHtml =
+                                HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                            resulttext.text = csHtml
+                            ResultEditText.setText(csHtml)
 
-                        val csHtml = HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT)
-                        resulttext.text = csHtml
-                        ResultEditText.setText(csHtml)
-                        progress2.visibility = ProgressBar.INVISIBLE
-                        button.isClickable = true
+                        }
+                    } else if (resStatus == 0) { //指摘がない時
+                        handler.post {
+                            Toast.makeText(this@MainActivity, "指摘はありません！", Toast.LENGTH_LONG)
+                                .show()
 
+                        }
+                    } else {
+                        var resMessgage = apiResponse.message
+                        handler.post {
+                            Toast.makeText(this@MainActivity, resMessgage, Toast.LENGTH_LONG)
+                                .show()
+
+                        }
                     }
+                    progress2.visibility = ProgressBar.INVISIBLE
+                    button.isClickable = true
 
                 }
             }
@@ -173,7 +186,8 @@ class MainActivity : AppCompatActivity() {
         val alertsList = data1.alerts
 
         val suggest = alertsList[indexnum].suggestion
-        val suggestList: Array<CharSequence> = suggest.toTypedArray()
+        val suggestList: Array<CharSequence> =
+            suggest.toTypedArray() //選択肢に表示する際にCharSequenceでないとエラーが表示されるため
         var index = 0
 
         var str = data1.checkedSentence
@@ -196,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 changeStr
             }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this) //訂正候補表示のため
             .setTitle("訂正候補を選択")
             .setSingleChoiceItems(suggestList, 0) { dialog, which ->
                 choiceItem = which
