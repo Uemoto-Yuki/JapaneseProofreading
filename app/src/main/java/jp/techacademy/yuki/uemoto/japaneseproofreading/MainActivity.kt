@@ -25,9 +25,9 @@ class MainActivity : AppCompatActivity() {
 
 
     private val handler = Handler(Looper.getMainLooper())
-    private var choiceItem = 0
-    private var changeStr = ""
-    private var str2 = ""
+    private var choiceItem = 0 //radiobuttonの選択したアイテムの値保持用
+    private var changeStr = "" //
+    private var str2 = "" //
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,11 +35,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         title = "Text Checker"
 
+        //メイン画面起動時のアプリ説明用ダイアログ
         val dialogFragment = Tutorial()
-
         dialogFragment.show(supportFragmentManager, "dialog")
 
-        ResultEditText.doOnTextChanged { text, start, count, after ->
+        //テキストウォッチャー。入力制限用。
+        ResultEditText.doOnTextChanged { _, _, _, _ ->
             if (ResultEditText.text.isNotEmpty()) {
                 var validation1 = ResultEditText.text.toString().indexOf("""<""")
                 var validation2 = ResultEditText.text.toString().indexOf(""">""")
@@ -68,23 +69,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        //checkボタンが押された時の挙動。
         button.setOnClickListener {
-            button.isClickable = false
-            progress2.visibility = ProgressBar.VISIBLE
+            button.isClickable = false //連打で同じリクエストを送らないように制御
+            progress2.visibility = ProgressBar.VISIBLE //読み込み中の表示
             changeStr = ""
 
             if (ResultEditText.text.isEmpty()) {
+                //何も入力されていない場合は読み込み中を消してエラーメッセージを出す
                 progress2.visibility = ProgressBar.INVISIBLE
                 errorText2.text = "文字が入力されていません"
                 button.isClickable = true
             } else {
-                progress2.visibility = ProgressBar.VISIBLE
+                //入力されている場合はリクエストを送信
                 startRequest()
-
 
             }
         }
-
+        //訂正候補表示するために、リンクを押せるようにする
         resulttext.setLinkClickListenable(str2) { url -> // この urlはaタグのhrefに指定された文字列
             showDialog(url)
             true
@@ -95,18 +97,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun startRequest() {
 
+        //APIに文字列を送るためのurlを作成
         val url = StringBuilder()
             .append(getString(R.string.base_url))
             .append("?apikey=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
             .append("&sentence=").append(ResultEditText.text.toString())
             .toString()
 
+        //クライアント作成
         val client = OkHttpClient.Builder()
+            //LogChatに、通信したURLや、GET/POST、ステータスコードや受け取ったレスポンスなどを表示させる
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
-            .connectTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
-            .readTimeout(10000.toLong(), TimeUnit.MILLISECONDS)
+            .connectTimeout(10000.toLong(), TimeUnit.MILLISECONDS) //接続までに10秒までまつ
+            .readTimeout(10000.toLong(), TimeUnit.MILLISECONDS) //データ取得に10秒までまつ
             .build()
 
         // Requestを作成
@@ -119,9 +124,11 @@ class MainActivity : AppCompatActivity() {
                 response.body?.string()?.also {
                     val apiResponse = Gson().fromJson(it, ApiResponse::class.java)
                     intent.putExtra("EXTRA_DATA", apiResponse)
-                    var resStatus = apiResponse.status
+
+                    var resStatus = apiResponse.status //レスポンスのステータスを取得。int型。
                     var str = apiResponse.checkedSentence //checkedSentenceはチェック後の文。指摘箇所を<<>>で示す。
                     var index = 0
+
                     //指摘がある時
                     if (resStatus == 1) {
                         handler.post {
@@ -137,7 +144,7 @@ class MainActivity : AppCompatActivity() {
                                     }.joinToString(separator = "")
 
                             val csHtml =
-                                HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                                HtmlCompat.fromHtml(str2, HtmlCompat.FROM_HTML_MODE_COMPACT) //HtmlタグでTextViewを装飾
                             resulttext.text = csHtml
                             ResultEditText.setText(csHtml)
 
@@ -149,6 +156,7 @@ class MainActivity : AppCompatActivity() {
 
                         }
                     } else {
+                        //通信には成功しているが何らかのエラーが生じた場合。ひとまず何が起こっているか知らせる。
                         var resMessgage = apiResponse.message
                         handler.post {
                             Toast.makeText(this@MainActivity, resMessgage, Toast.LENGTH_LONG)
@@ -162,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            //通信失敗した場合の処理
             override fun onFailure(call: Call, e: IOException) {
                 handler.post {
                     Toast.makeText(this@MainActivity, "時間をおいてもう一度お試しください", Toast.LENGTH_LONG)
@@ -177,25 +186,22 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
+    //訂正候補表示のための処理
     private fun showDialog(url: String) {
-        var array = url.split("index=")
+
+        var array = url.split("index=") //渡ってきたurlを"index="で区切ってリストに入れる
         val indexnum = array[1].toInt() //index=x を示す
 
         val data1 = intent.getSerializableExtra("EXTRA_DATA") as ApiResponse
-        val alertsList = data1.alerts
-
-        val suggest = alertsList[indexnum].suggestion
+        val alertsList = data1.alerts //alertsは指定内容を格納した配列
+        val suggest = alertsList[indexnum].suggestion //suggestionは指摘箇所を置き換える候補。
         val suggestList: Array<CharSequence> =
             suggest.toTypedArray() //選択肢に表示する際にCharSequenceでないとエラーが表示されるため
+        var str = data1.checkedSentence //チェック後の文。指摘箇所を<<>>で示す。
+
         var index = 0
-
-        var str = data1.checkedSentence
-
-
-        Log.d("検証1", str)
-
         var str2 =
+            //校正後の文字列では無い場合は、changeStrに何も入っていないのでstr2を使用する
             if (changeStr.isNullOrEmpty()) {
                 str.split(' ') //文字列をスペースで分けてリスト化する。"AAA <<B>> C" が→ [AAA, <<B>>, C]
                     .map { //strがリストになったのでList.map{}でstrの値を以下に変換して返す
@@ -207,17 +213,18 @@ class MainActivity : AppCompatActivity() {
                         } else it //それ以外なら元に戻りまたチェック
                     }.joinToString(separator = "")
             } else {
+                //check押下後、1回校正後の文字列の場合は、changeStrを使用する
                 changeStr
             }
 
         AlertDialog.Builder(this) //訂正候補表示のため
             .setTitle("訂正候補を選択")
             .setSingleChoiceItems(suggestList, 0) { dialog, which ->
-                choiceItem = which
+                choiceItem = which //そのままwhichを使用しても.setPositiveButtonには渡らないため
 
             }
             .setPositiveButton("OK") { dialog, which ->
-
+                //OKを押した場合、str2において特定の指摘箇所に相当する順番の訂正候補に置き換えてchangeStrに代入する
                 when (choiceItem) {
                     0 -> {
                         changeStr = str2.replace(
@@ -247,8 +254,10 @@ class MainActivity : AppCompatActivity() {
                 val csHtml = HtmlCompat.fromHtml(changeStr, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 ResultEditText.setText(csHtml)
                 resulttext.text = csHtml
+                choiceItem = 0
 
             }.setNegativeButton("CANCEL") { dialog, which ->
+                //CANCELボタンを押下した場合はダイアログを閉じるだけ(何もしなし)
             }
             .show()
     }
