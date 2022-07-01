@@ -263,6 +263,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    //メニューを生成
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -271,11 +272,13 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
 
+        //ヘルプマークを押下するとヘルプ画面に飛ぶ
         if (id == R.id.action_help) {
             val intent = Intent(applicationContext, HelpActivity::class.java)
             startActivity(intent)
             return true
         } else if (id == R.id.action_share) {
+            //共有マークを押すと共有を呼び出す。
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
                 val string = resulttext.text.toString()

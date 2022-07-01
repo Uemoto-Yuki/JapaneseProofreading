@@ -3,7 +3,7 @@
 
 
     <string name="base_url">https://api.a3rt.recruit.co.jp/proofreading/v2/typo</string>
-    <string name="api_key"></string>
+    <string name="api_key">APIKEY</string>
 
 
     <!-- 校正後画面用文字列 -->
